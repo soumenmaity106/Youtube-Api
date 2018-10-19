@@ -1,28 +1,44 @@
+import _ from 'lodash';
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
-
+import SerarchBar from './components/search_bar';
+import VideoList from './components/video_list';
+import YTSsearch from 'youtube-api-search';
+import VideoDetail from './components/video_detail';
+import './App.css'
+const API_KEY = 'AIzaSyBV7PH-uBmd94CAXlM6hsjXmfx9n5TsLt8'
+YTSsearch({ key: API_KEY, term: 'surfboards' }, function (data) {
+    console.log(data);
+});
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
-}
+    constructor(props) {
+        super(props)
+        this.state = {
+            videos: [],
+            selectedVideo: null
+        }
+        this.videoSerach('surfboard');
+    }
+    videoSerach(term) {
+        YTSsearch({ key: API_KEY, term: term }, (videos) => {
+            this.setState({
+                videos: videos,
+                selectedVideo: videos[0]
+            });
+        });
+    }
 
-export default App;
+    render() {
+        const videoSerach = _.debounce((term)=> {this.videoSerach(term)},800)
+        return (
+            <div>
+                <SerarchBar onSerachTermChange={videoSerach} />
+                <VideoDetail video={this.state.selectedVideo} />
+                <VideoList
+                    videos={this.state.videos}
+                    onVideoSelect={selectedVideo => this.setState({ selectedVideo })}
+                />
+            </div>
+        )
+    }
+}
+export default App
